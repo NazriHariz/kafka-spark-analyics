@@ -1,1 +1,181 @@
-# kafka-spark-analyics
+# Spark + Kafka Data Pipeline Project
+
+## Overview
+
+The pipeline flow is:
+
+**NDJSON Data → Kafka Producer → Kafka Topic → Kafka Consumer / Spark → Analytics Output (CSV/Parquet)**
+
+---
+
+## Deliverables
+
+This repository contains the following components:
+
+* **Kafka Producer script**
+  Sends NDJSON data records into a Kafka topic.
+
+* **Kafka Consumer script**
+  Reads and processes messages from the Kafka topic.
+
+* **Spark batch analytics script**
+  Performs batch processing and analytics on the generated data.
+
+* **Generated NDJSON data files**
+  Sample datasets used as input for the pipeline.
+
+* **Output analytics (CSV / Parquet)**
+  Results produced by the Spark analytics job.
+
+* **README (this file)**
+  Setup and execution instructions.
+
+---
+
+## Prerequisites
+
+Ensure you have the following installed:
+
+* Python 3.8+
+* Apache Kafka
+* Apache Spark
+* Java (required for Kafka & Spark)
+* pip (Python package manager)
+* pandas
+
+---
+
+## Running the Pipeline
+
+### Step 1: Start Kafka (KRaft Mode)
+
+#### Format storage directory (first-time setup only):
+
+```bash
+kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/kafka_2.13-3.7.0/config/kraft/server.properties
+```
+
+To generate a cluster ID:
+
+```bash
+export CLUSTER_ID="$(kafka-storage.sh random-uuid)"
+```
+
+#### Start Kafka broker:
+
+```bash
+kafka-server-start.sh /opt/kafka/kafka_2.13-3.7.0/config/kraft/server.properties
+```
+
+---
+
+### Step 2: Create Kafka Topic
+
+```bash
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic bank_transactions --if-not-exists
+```
+
+---
+
+### Step 3: Run Kafka Producer
+
+Reads NDJSON data and publishes to Kafka:
+
+```bash
+python producer.py
+```
+
+---
+
+### Step 4: Run Kafka Consumer (Optional)
+
+```bash
+python consumer.py
+```
+
+---
+
+### Step 5: Run Spark Batch Analytics
+
+```bash
+spark-submit batchAnalytics.py
+```
+
+---
+
+## Project Structure
+
+```
+project/
+│
+├── producer.py              # Kafka producer
+├── consumer.py              # Kafka consumer
+├── batchAnalytics.py        # Spark analytics job
+├── config.py                # Configuration settings
+├── data/
+│   └── *.ndjson             # Input data
+├── output/
+│   └── (csv/parquet files)  # Results
+└── README.md
+```
+
+---
+
+## Output
+
+The Spark job generates results in:
+
+* CSV format
+* Parquet format
+
+Stored in:
+
+```
+/output/
+```
+
+---
+
+## Configuration
+
+Update `config.py` to modify:
+
+* Kafka bootstrap servers
+* Topic name
+* File paths
+* Spark parameters
+
+---
+
+## Example Workflow
+
+1. Place NDJSON files in `/data`
+2. Start Kafka (KRaft mode)
+3. Run producer → sends data to topic
+4. Run consumer (optional)
+5. Run Spark job
+6. Check `/output` for analytics
+
+---
+
+## Notes
+
+* Ensure correct `server.properties` is used (`config/kraft/`)
+* Spark job assumes consistent schema in NDJSON files
+* Adjust Spark configs for large datasets if needed
+
+---
+
+## Future Improvements
+
+* Add Spark Structured Streaming
+* Introduce schema validation (Avro/JSON Schema)
+* Dockerize Kafka + Spark setup
+
+---
+
+## Author
+
+Snow Zhou, Nazri Maamor, Tei Kar
+
+---
